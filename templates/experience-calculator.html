@@ -1,0 +1,49 @@
+
+<html>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <head>
+        <title> Experience Calculator </title>
+    </head>
+
+    <body class="container"></body>
+        <div class="home-wrapper">
+            <a href="/" class="home-link">Home</a>
+        </div>
+
+        <form action="/experience-calculator" method="POST">
+
+
+            <label for="season">Season:</label>
+            <select id="season" name="season">
+                <option value="1">Loong Haven</option>
+            </select>
+            <label for="current_level">Current Level:</label>
+                <input type="number" id="current_lvl" name="current_level" min="130" max="229" required value="{{current_level}}">
+            <label for="exp_progress">Current Experience:</label>
+                <input type="number" id="current_exp" name="current_experience" min="0" max="12000000" value="{{current_experience}}" required>
+            <label for="exp_per_hour">Experience Per Hour:</label>
+                <input type="number" id="exp-per_hour" name="exp_per_hour" min="1" max="999999999" required value="{{exp_per_hour}}">
+            <label for="boosted_today">Boosted Today?</label>
+                <input type="checkbox" id="boosted_today" name="boosted_today" checked value="{{boosted_today}}">
+
+            <h1> Time till target level</h1>
+            <label for="target_level">Target Level:</label>
+                <input type="number" id="target_level" name="target_level" min="130" max="230" value="{{target_level}}">
+            {% if hours_left is defined %}
+                <p class="results">It will take {{ hours_left }} hours to reach the target level at {{ target_time }}.</p>
+            {% endif %}
+
+            <h1> Time left to level</h1>
+            <label for="time_left">Time Left:</label>
+                <input type="datetime-local" id="time_left" name="time_left" value="{{time_left or default_time}}" required>
+            {% if calculated_level is defined %}
+                {% if calculated_level == current_level %}
+                    <p class="results">You will not level up in the given time.</p>
+                {% else %}
+                    <p class="results">You will level up to {{ calculated_level }} in the given time</p>
+                {% endif %}
+            {% endif %}
+            <button type="submit">Calculate</button>
+        </form>
+    </body>
+</html>

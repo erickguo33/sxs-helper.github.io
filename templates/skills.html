@@ -1,0 +1,103 @@
+<html>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <head>
+        <title>Skills Library</title>
+    </head>
+
+    <body class="container">
+        <div class="home-wrapper">
+            <a href="/" class="home-link">Home</a>
+        </div>
+
+        <form action="/skills" method="POST">
+            <label for="selected_class">Class Tier: </label>
+            <select id="selected_class" name="selected_class">
+                <option value="Destroyer">Destroyer</option>
+                <option value="Dominator">Dominator</option>
+                <option value="Conqueror">Conqueror</option>
+                <option value="Guardian">Guardian</option>
+            </select>
+            <button type="submit">Submit</button>
+
+            {% if skills_data is defined %}
+                {% for class_name in skills_data.keys() %}
+                    <h1>{{ class_name }}</h1>
+                    <div style="display: flex;">
+                        <div class="Techniques" style="flex: 1;">
+                            <h2>Techniques</h2>
+                            {% for quality_type in base_qualities %} 
+                                {% for skill in skills_data[class_name]["Technique"][quality_type] %}
+                                    <div class="skill-entry">
+                                    <img class="technique-icon" src="{{ url_for('static', filename='skill_icons/' + skill['Skill'] + '.png') }}" alt="{{ skill['Skill'] }}">
+                                        <div>
+                                            <h3><span class="{{ quality_type }}">{{ skill['Skill'] }}</span></h3>
+                                            <p>{{skill['Description']}}<br>
+                                                {% if skill['CD'] %} 
+                                                    CD: {{skill['CD']}} turns, 
+                                                {% endif %}
+                                                {% if skill['Immortal'] %}
+                                                    {{skill['%']}}%:
+                                                    {% for quality in quality_order %}
+                                                {% if skill[quality] %} 
+                                                        <span class="{{ quality }}">{{ skill[quality] }}</span>
+                                                            {% if quality != "Immortal" %} 
+                                                                    /
+                                                            {% endif %}
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                {% elif skill['Skill'] in multi_skills %}
+                                                    Multi-value skills are not currently supported
+                                                {% else %}
+                                                    {% if skill['Skill'] in summon_skills %}
+                                                        Summoning skills are not supported
+                                                    {% else %}
+                                                        Flat values are not supported
+                                                    {% endif %}
+                                                {% endif %}
+                                            </p>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            {% endfor %}    
+                        </div>
+
+                        <div class="Charms" style="flex: 1;">
+                            <h2>Charms</h2>
+                            {% for quality_type in base_qualities %} 
+                                {% for skill in skills_data[class_name]["Charm"][quality_type] %}
+                                    <div class="skill-entry">
+                                    <img class="charm-icon" src="{{ url_for('static', filename='skill_icons/' + skill['Skill'] + '.png') }}" alt="{{ skill['Skill'] }}">
+                                        <div>
+                                            <h3><span class="{{ quality_type }}">{{ skill['Skill'] }}</span></h3>
+                                            <p>{{skill['Description']}}<br>
+                                                {% if skill['Immortal'] %}
+                                                    {{skill['%']}}%:
+                                                    {% for quality in quality_order %}
+                                                        {% if skill[quality] %} 
+                                                            <span class="{{ quality }}">{{ skill[quality] }}</span>
+                                                            {% if quality != "Immortal" %} 
+                                                                    /
+                                                            {% endif %}
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                {% elif skill['Skill'] in multi_skills %}
+                                                    Multi-value skills are not currently supported
+                                                {% else %}
+                                                    {% if skill['Skill'] in summon_skills %}
+                                                        Summoning skills are not supported
+                                                    {% else %}
+                                                        Flat values are not supported
+                                                    {% endif %}
+                                                {% endif %}
+                                            </p>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            {% endfor %}   
+                        </div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </form>
+    </body>
+</html>
