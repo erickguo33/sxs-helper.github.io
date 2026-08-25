@@ -288,8 +288,11 @@ def cart_calculator():
         while time_left > 0:
             hourly_update(cart_level, bonus, priority, total_output, cart_data, season_max)
             time_left -= 1
-        
-    #    total_output[f"{resource}_output"] = int(cart_level[f"{resource}_output"])
+
+        print(total_output)
+
+        for resource in resource_types:
+            total_output[f"{resource}_output"] = int(total_output[f"{resource}_output"])
 
         return render_template("cart-calculator.html",
                                 resource_types=resource_types,
