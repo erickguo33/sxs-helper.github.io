@@ -9,15 +9,15 @@ def index():
     return render_template("index.html")
 
 class_chain = [
-    ["Destroyer", "Archmage", "Sorcerer", "Mage"],
-    ["Dominator", "Arcanist", "Sage", "Mage"],
-    ["Conqueror", "Berserker", "Duelist", "Warrior"],
-    ["Guardian", "Paladin", "Knight", "Warrior"]
+    ["Magister", "Destroyer", "Archmage", "Sorcerer", "Mage"],
+    ["Prophet", "Dominator", "Arcanist", "Sage", "Mage"],
+    ["Ravager", "Conqueror", "Berserker", "Duelist", "Warrior"],
+    ["Templar", "Guardian", "Paladin", "Knight", "Warrior"]
 ]
 
 base_qualities = ["Legendary", "Epic", "Rare"]
 quality_order =["Rare", "Epic", "Legendary", "Mythic", "Divine", "Immortal"]
-summon_skills = ["Stonechief Summon", "Flame Wolf Summon", "Treantling Summon", "Frenzy Totem", "Waterling Summon", "Rock Rex Summon", "Decoy Clone"]
+summon_skills = ["Stonechief Summon", "Flame Wolf Summon", "Treantling Summon", "Frenzy Totem", "Waterling Summon", "Rock Rex Summon", "Decoy Clone", "Soulweave", "Thalasson Summon"]
 
 multi_skills = {
     "Frost Guard": {
@@ -27,7 +27,7 @@ multi_skills = {
                 "Mythic": 2.36,
                 "Divine": 2.7,
                 "Immortal": 3.1
-            },             "DMG Reduction": {
+            }, "DMG Reduction": {
                 "Legendary": 20.80,
                 "Mythic": 26.00,
                 "Divine": 31.20,
@@ -45,9 +45,9 @@ if (datetime.now() > today_reset):
 @app.route("/experience-calculator", methods=["GET", "POST"])
 def experience_calculator():
     if request.method == 'POST':
-        current_level = int(request.form['current_level'])
+        current_level = int(request.form.get('current_level'))
         current_experience = int(request.form['current_experience'])
-        exp_per_hour = int(request.form['exp_per_hour'])
+        exp_per_hour = int(request.form.get('exp_per_hour'))
 
         boost_count = 1
         today_reset = datetime.now().replace(hour=8, minute=0, second=0, microsecond=0)    
@@ -58,7 +58,7 @@ def experience_calculator():
             next_reset = today_reset.replace(day=today_reset.day + 1)
         boost_diff = (next_reset - datetime.now()).total_seconds() / 3600
         if request.form.get('target_level'):
-            target_level = int(request.form['target_level'])
+            target_level = request.form.get('target_level')
         else:
             target_level = current_level + 1
         total_xp_needed = 0 - current_experience
@@ -211,6 +211,7 @@ def skills():
         selected_class = request.form.get('selected_class')
         skills_data = get_skills(selected_class)
         return render_template("skills.html", 
+            selected_class=selected_class,
             skills_data=skills_data, 
             base_qualities=base_qualities,
             quality_order=quality_order,
@@ -228,7 +229,7 @@ def get_skills(class_filter):
     skills = []
     classes = get_chain(class_filter)
 
-    with open('s2_skills.csv', newline='') as skills_file:
+    with open('s3_skills.csv', newline='') as skills_file:
         reader = csv.DictReader(skills_file)
         for row in reader:
             if row['Class'] in classes:
@@ -263,4 +264,132 @@ def get_chain(chosen_class):
 
 @app.route("/cart-calculator", methods=["GET", "POST"])
 def cart_calculator():
-    return render_template("cart-calculator.html")
+    season = request.form.get('season')
+    season_max = get_cart_max(season)
+    cart_data = get_cart(season_max)
+
+    if request.method == 'POST':
+        future = datetime.fromisoformat(request.form['time_left'])
+        present = datetime.now()
+        time_left = (future - present).total_seconds() // 3600
+        time_left += (time_left // 24) * 2
+
+        cart_level = {}
+        bonus = {}
+        priority = [[], [], [], [], [], [], [], []]
+        total_output = {}
+        for resource in resource_types:
+            order = int(request.form.get(f"{resource}_priority"))
+            priority[order].append(f"{resource}")
+            bonus[f"{resource}_bonus"] = int(request.form.get(f"{resource}_bonus"))
+            total_output[f"{resource}_output"] = 0   
+            cart_level[f"{resource}_lvl"] = int(request.form.get(f"{resource}_level"))     
+
+        while time_left > 0:
+            hourly_update(cart_level, bonus, priority, total_output, cart_data, season_max)
+            time_left -= 1
+        
+    #    total_output[f"{resource}_output"] = int(cart_level[f"{resource}_output"])
+
+        return render_template("cart-calculator.html",
+                                resource_types=resource_types,
+                                cart_level=cart_level,
+                                bonus=bonus,
+                                total_output=total_output,
+                                time_left=future)
+    else: 
+        cart_level = {}
+        bonus = {}
+        total_output = {}
+        return render_template("cart-calculator.html",
+                                resource_types=resource_types,
+                                cart_level=cart_level,
+                                bonus=bonus,
+                                total_output=total_output)
+
+resource_types = ["Rolla", "Wood", "Stone", "Ore", "Essence", "Sand", "Pet"]
+resource_display = ["Rolla", "Wood", "Stone", "Raw Ore", "Battle Essence", "Chrono Sand", "Pet Food"]
+def get_cart(max_level):
+    cart = {}
+    with open('cart.csv', newline='') as cart_file:
+        reader = csv.DictReader(cart_file)
+        for row in reader:
+            level = row['Lvl']
+            cart[level] = row
+    return cart
+
+def get_cart_max(season):
+    if season == "2":
+        return 108
+    else:
+        return 152
+
+def hourly_update(cart_level, bonus, priority, total_output, cart_data, season_max):
+    for resource in resource_types:
+        current_bonus = float(bonus[f"{resource}_bonus"]) / 100 + 1
+        output = int(cart_data[str(cart_level[f"{resource}_lvl"])][f"{resource} Output"])
+        hourly_output = current_bonus * output
+        total_output[f"{resource}_output"] = int(total_output[f"{resource}_output"]) + hourly_output
+
+    for order in range(1, len(priority)):
+        if priority[order]:
+            if max_leveled(priority, order, cart_level, season_max) == False:
+                if equal_levels(priority, order, cart_level):
+                    for resource in priority[order]:
+                        upgrade_cart(resource, total_output, cart_data, cart_level, season_max)
+                else: 
+                    resource = get_lowest_level(priority, order, cart_level, season_max)
+                    upgrade_cart(resource, total_output, cart_data, cart_level, season_max)
+                break
+
+
+def max_leveled(priority, order, cart_level, season_max):
+    for resource in priority[order]:
+        if (int(cart_level[f"{resource}_lvl"] != season_max)):
+            return False
+    return True
+
+
+def equal_levels(priority, order, cart_level):
+    levels = []
+    for resource in priority[order]:
+        levels.append(cart_level[f"{resource}_lvl"])
+
+    if len(levels) == 1:
+        return True
+    else:
+        for resource in range(1, len(levels)):
+            if (levels[resource] != levels[resource - 1]):
+                return False
+        return True
+
+def upgrade_cart(resource, total_output, cart_data, cart_level, season_max):
+    current_wood = int(total_output["Wood_output"])
+    current_stone = int(total_output["Stone_output"])
+    level = str(cart_level[f"{resource}_lvl"])
+    stone_cost = int(cart_data[level][f"{resource} Stone Cost"])
+    wood_cost = int(cart_data[level][f"{resource} Wood Cost"])
+    if current_wood > wood_cost and current_stone > stone_cost:
+        if int(level) < season_max:
+            total_output["Wood_output"] -= wood_cost
+            total_output["Stone_output"] -= stone_cost
+            cart_level[f"{resource}_lvl"] = cart_level[f"{resource}_lvl"] + 1
+
+def get_lowest_level(priority, order, cart_level, season_max):
+    levels = []
+    resources = []
+    for resource in priority[order]:
+        levels.append(cart_level[f"{resource}_lvl"])
+        resources.append(resource)
+
+    length = len(levels)
+    min = levels[0]
+    index = 0
+    if length == 1:
+        return resources[index]
+    else:
+        for x in range(1, length):
+            if levels[x] < min and levels[x] < season_max:
+                min = levels[x]
+                index = x
+    return resources[index]

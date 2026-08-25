@@ -11,8 +11,35 @@
         </div>
 
         <form action="/cart-calculator" method="POST">
+            <label for="season">Season:</label>
+            <select id="season" name="season">
+                <option value="2">Loong Haven</option>
+            </select>
 
+            <h1> Time Left</h1>
+            <label for="time_left">Time Left:</label>
+                <input type="datetime-local" id="time_left" name="time_left" value="{{time_left}}" required>
+            <div>
 
+            {% for resource in resource_types %}
+                <div class="cart-entry">
+                    <label for="{{resource}}_level">{{resource}} Level</label>
+                        <input type="number" name="{{resource}}_level" min="72" max="342" value="{{cart_level.get(resource + '_lvl', 108)}}" required style="width: 100px;">
+                    <label for="{{resource}}_bonus"><br>{{resource}} Bonus</label>
+                        <input type="number" name="{{resource}}_bonus" min="0" value="{{bonus.get(resource + '_bonus', 55)}}" required style="width: 100px;">
+                    <label for="{{resource}}_priority"><br>{{resource}} Priority</label>
+                        <input type="number" name="{{resource}}_priority" min="1" max="7" value="1" required style="width: 60px;">
+                    {% if total_output %}
+                        {% if total_output[resource + '_output'] %}
+                            <p class="results"> You will have <b>{{total_output[resource + '_output']}}</b> of {{resource}}.
+                            <br>{{resource}} Level: <b>{{cart_level[resource + '_lvl']}}</b> </p>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            {% endfor %}
+
+            
+            <br>
             <button type="submit">Calculate</button>
         </form>
 

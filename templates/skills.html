@@ -12,10 +12,51 @@
         <form action="/skills" method="POST">
             <label for="selected_class">Class Tier: </label>
             <select id="selected_class" name="selected_class">
-                <option value="Destroyer">Destroyer</option>
-                <option value="Dominator">Dominator</option>
-                <option value="Conqueror">Conqueror</option>
-                <option value="Guardian">Guardian</option>
+                
+                <option value="Destroyer" 
+                {% if selected_class == "Destroyer" %} 
+                    selected
+                {% endif %}
+                >Destroyer</option>
+                <option value="Dominator" 
+                {% if selected_class == "Dominator" %}
+                    selected
+                {% endif %}
+                >Dominator</option>
+                <option value="Conqueror" 
+                {% if selected_class == "Conqueror" %}
+                    selected
+                {% endif %}
+                >Conqueror</option>
+                <option value="Guardian" 
+                {% if selected_class == "Guardian" %}
+                    selected
+                {% endif %}
+                >Guardian</option>
+
+                <!--
+                <option value="Magister" 
+                {% if selected_class == "Magister" %} 
+                    selected
+                {% endif %}
+                >Magister</option>
+                <option value="Prophet" 
+                {% if selected_class == "Prophet" %}
+                    selected
+                {% endif %}
+                >Prophet</option>
+                <option value="Ravager" 
+                {% if selected_class == "Ravager" %}
+                    selected
+                {% endif %}
+                >Ravager</option>
+                <option value="Templar" 
+                {% if selected_class == "Templar" %}
+                    selected
+                {% endif %}
+                >Templar</option>
+                -->
+
             </select>
             <button type="submit">Submit</button>
 

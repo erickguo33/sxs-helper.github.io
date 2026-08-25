@@ -15,16 +15,16 @@
 
             <label for="season">Season:</label>
             <select id="season" name="season">
-                <option value="1">Loong Haven</option>
+                <option value="2">Loong Haven</option>
             </select>
             <label for="current_level">Current Level:</label>
-                <input type="number" id="current_lvl" name="current_level" min="130" max="229" required value="{{current_level}}">
+                <input type="number" name="current_level" min="130" max="229" required value="{{current_level}}" style="width: 100px;">
             <label for="exp_progress">Current Experience:</label>
-                <input type="number" id="current_exp" name="current_experience" min="0" max="12000000" value="{{current_experience}}" required>
+                <input type="number" name="current_experience" min="0" max="12000000" value="{{current_experience}}" required>
             <label for="exp_per_hour">Experience Per Hour:</label>
-                <input type="number" id="exp-per_hour" name="exp_per_hour" min="1" max="999999999" required value="{{exp_per_hour}}">
+                <input type="number" name="exp_per_hour" min="1" max="999999999" value="{{exp_per_hour}}" required>
             <label for="boosted_today">Boosted Today?</label>
-                <input type="checkbox" id="boosted_today" name="boosted_today" checked value="{{boosted_today}}">
+                <input type="checkbox" name="boosted_today" checked value="{{boosted_today}}">
 
             <h1> Time till target level</h1>
             <label for="target_level">Target Level:</label>
@@ -43,7 +43,9 @@
                     <p class="results">You will level up to {{ calculated_level }} in the given time</p>
                 {% endif %}
             {% endif %}
-            <button type="submit">Calculate</button>
+            <div>
+                <button type="submit">Calculate</button>
+            </div>
         </form>
     </body>
 </html>
