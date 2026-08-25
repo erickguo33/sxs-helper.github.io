@@ -281,7 +281,7 @@ def cart_calculator():
         for resource in resource_types:
             order = int(request.form.get(f"{resource}_priority"))
             priority[order].append(f"{resource}")
-            bonus[f"{resource}_bonus"] = int(request.form.get(f"{resource}_bonus"))
+            bonus[f"{resource}_bonus"] = float(request.form.get(f"{resource}_bonus"))
             total_output[f"{resource}_output"] = 0   
             cart_level[f"{resource}_lvl"] = int(request.form.get(f"{resource}_level"))     
 
