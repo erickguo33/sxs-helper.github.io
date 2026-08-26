@@ -289,8 +289,6 @@ def cart_calculator():
             hourly_update(cart_level, bonus, priority, total_output, cart_data, season_max)
             time_left -= 1
 
-        print(total_output)
-
         for resource in resource_types:
             total_output[f"{resource}_output"] = int(total_output[f"{resource}_output"])
 
@@ -312,6 +310,7 @@ def cart_calculator():
 
 resource_types = ["Rolla", "Wood", "Stone", "Ore", "Essence", "Sand", "Pet"]
 resource_display = ["Rolla", "Wood", "Stone", "Raw Ore", "Battle Essence", "Chrono Sand", "Pet Food"]
+
 def get_cart(max_level):
     cart = {}
     with open('cart.csv', newline='') as cart_file:
@@ -341,17 +340,15 @@ def hourly_update(cart_level, bonus, priority, total_output, cart_data, season_m
                     for resource in priority[order]:
                         upgrade_cart(resource, total_output, cart_data, cart_level, season_max)
                 else: 
-                    resource = get_lowest_level(priority, order, cart_level, season_max)
+                    resource = get_lowest_cart(priority, order, cart_level, season_max)
                     upgrade_cart(resource, total_output, cart_data, cart_level, season_max)
                 break
-
 
 def max_leveled(priority, order, cart_level, season_max):
     for resource in priority[order]:
         if (int(cart_level[f"{resource}_lvl"] != season_max)):
             return False
     return True
-
 
 def equal_levels(priority, order, cart_level):
     levels = []
@@ -378,7 +375,7 @@ def upgrade_cart(resource, total_output, cart_data, cart_level, season_max):
             total_output["Stone_output"] -= stone_cost
             cart_level[f"{resource}_lvl"] = cart_level[f"{resource}_lvl"] + 1
 
-def get_lowest_level(priority, order, cart_level, season_max):
+def get_lowest_cart(priority, order, cart_level, season_max):
     levels = []
     resources = []
     for resource in priority[order]:
@@ -396,3 +393,77 @@ def get_lowest_level(priority, order, cart_level, season_max):
                 min = levels[x]
                 index = x
     return resources[index]
+
+@app.route("/gear-calculator", methods=["GET", "POST"])
+def gear_calculator():
+    slot_num = 5
+    levels = [0] * slot_num
+    resource_type = "Ore"
+
+
+    if request.method == 'POST':
+        original_resource = int(request.form.get("current_resource"))
+        current_resource = original_resource
+        season = request.form.get("season")
+        resource_season = f"{resource_type}_S{season}"
+        this_cap = calculator_caps[f"{resource_season}"]
+        cost = get_upgrade_cost(resource_season)
+
+        for slot in range(slot_num):
+            levels[slot] = int(request.form.get(f"{resource_type}_slot{slot}"))
+
+        if all_capped(levels, this_cap) == False:
+            lowest = get_lowest_upgrade(levels, this_cap)
+            while current_resource > int(cost[str(levels[lowest])][resource_type]):
+                current_resource -= int(cost[str(levels[lowest])][resource_type])
+                levels[lowest] += 1
+                lowest = get_lowest_upgrade(levels, this_cap)
+        print(levels)
+
+        return render_template("gear-calculator.html",
+                               levels=levels,
+                               resource_type=resource_type,
+                               slot_num=slot_num,
+                               current_resource=current_resource)
+    else:
+        return render_template("gear-calculator.html",
+                               resource_type=resource_type,
+                               current_resource="",
+                               slot_num=slot_num,
+                               levels="")
+
+calculator_caps = {
+    "Ore_S2": 260,
+    "Sand_S2": 27,
+    "Other_S2": 230,
+}
+
+def get_upgrade_cost(resource_season):
+    cost = {}
+    with open(f"{resource_season}.csv", newline='') as cost_file:
+        reader = csv.DictReader(cost_file)
+        for row in reader:
+            level = row['Lvl']
+            cost[level] = row
+    return cost
+
+def all_capped(levels, this_cap):
+    total = 0
+    for level in range(len(levels)):
+        total += int(levels[level])
+    if total / len(levels) == this_cap:
+        return True
+    return False
+
+def get_lowest_upgrade(levels, this_cap):
+    min_value = levels[0]
+    min_index = 0
+    while min_index < len(levels) - 1 and  min_value == this_cap:
+        min_index += 1
+        min_value == levels[min_index]
+
+    for level in range(1, len(levels)):
+        if levels[level] < min_value:
+            min_index = level
+    return min_index
+    
