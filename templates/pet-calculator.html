@@ -1,0 +1,64 @@
+<html>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <head>
+        <title>Relic Calculator</title>
+    </head>
+
+    <body class="container">
+        
+        <div class="home-wrapper">
+            <a href="/" class="home-link">Home</a>
+        </div>
+
+        <form action="/pet-calculator" method="POST">
+            <label for="season">Season:</label>
+            <select id="season" name="season">
+                <option value="2">Loong Haven</option>
+            </select>
+
+            <h1>Fantomon Upgrade Calculator</h1>
+
+            <label for="current_resource">Quality Treats:</label>
+                <input type="number" name="current_resource" min="0" value="{{original_resource}}">
+                <br>
+            <label for="rare_sand">Premium Treats:</label>
+                <input type="number" name="premium_pet" min="0" value="{{premium_pet}}">
+                <br>
+            <label for="epic_sand">Deluxue Treats</label>
+                <input type="number" name="deluxue_pet" min="0" value="{{deluxue_pet}}">
+                <br><br>
+            </div>
+
+            <label for="resonance">Resonance</label>
+                <input type="number" name="resonance" min="13" value="{{resonance}}" style="width: 75px;">
+                <br>
+            </div>
+            
+            {% for slot in range(slot_num) %}
+                <label for="ore_slot{{slot}}">Fantomon Slot {{slot + 1}}</label>
+                    <input type="number" name="{{resource_type}}_slot{{slot}}" min="13" max="290" value="{{dupe[slot] or default_min}}" style="width: 75px;">
+                {% if loop.index % 1 == 0 %} 
+                    <br>
+                {% endif %}
+            {% endfor %}
+
+            {% if levels %}
+                <div class="results">
+                    Your Fantomon levels will reach:
+                    {% for level in levels %}
+                        {{level}}
+                        {% if not loop.last %}
+                            ,
+                        {% endif %}
+                    {% endfor%}
+                    <br>
+                    You will have {{current_resource}} quality treats remaining.
+                    <br>*Due to fantomon leveling being based on exp instead of treats, there is a 3%~ margin error in costs.
+                </div>
+            {% endif %}
+            
+            <button type="submit">Calculate</button>
+        </form>
+
+    </body>
+</html>

@@ -1,9 +1,5 @@
 Todo 
-
-- gear upgrade
-- relic upgrade
-- essence upgrade
-- food upgrade
+- material realm
 - primostar
 - astral rating?
-- material realm
+

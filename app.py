@@ -399,6 +399,7 @@ def gear_calculator():
     slot_num = 5
     levels = [0] * slot_num
     resource_type = "Ore"
+    default_min = 130
 
 
     if request.method == 'POST':
@@ -408,9 +409,14 @@ def gear_calculator():
         resource_season = f"{resource_type}_S{season}"
         this_cap = calculator_caps[f"{resource_season}"]
         cost = get_upgrade_cost(resource_season)
+        resonance = int((request.form.get("resonance")) or 0)
 
         for slot in range(slot_num):
-            levels[slot] = int(request.form.get(f"{resource_type}_slot{slot}"))
+            if resonance == 0:
+                levels[slot] = int(request.form.get(f"{resource_type}_slot{slot}"))
+            else:
+                levels[slot] = resonance
+        dupe = levels.copy()
 
         if all_capped(levels, this_cap) == False:
             lowest = get_lowest_upgrade(levels, this_cap)
@@ -418,24 +424,34 @@ def gear_calculator():
                 current_resource -= int(cost[str(levels[lowest])][resource_type])
                 levels[lowest] += 1
                 lowest = get_lowest_upgrade(levels, this_cap)
-        print(levels)
+                if levels[lowest] == this_cap:
+                    break
 
         return render_template("gear-calculator.html",
-                               levels=levels,
                                resource_type=resource_type,
                                slot_num=slot_num,
-                               current_resource=current_resource)
+                               current_resource=current_resource,
+                               original_resource=original_resource,
+                               default_min=default_min,
+                               resonance=resonance,
+                               dupe=dupe,
+                               levels=levels)
     else:
         return render_template("gear-calculator.html",
                                resource_type=resource_type,
-                               current_resource="",
                                slot_num=slot_num,
+                               current_resource="",
+                               original_resource="",
+                               default_min=default_min,
+                               resonance="",
+                               dupe="",
                                levels="")
 
 calculator_caps = {
     "Ore_S2": 260,
     "Sand_S2": 27,
-    "Other_S2": 230,
+    "Essence_S2": 230,
+    "Pet_S2": 230,
 }
 
 def get_upgrade_cost(resource_season):
@@ -466,4 +482,183 @@ def get_lowest_upgrade(levels, this_cap):
         if levels[level] < min_value:
             min_index = level
     return min_index
+
+def duplicate_levels(original, new_levels):
+    for level in original:
+        new_levels[level] = original
+    return new_levels
     
+@app.route("/relic-calculator", methods=["GET", "POST"])
+def relic_calculator():
+    slot_num = 20
+    levels = [0] * slot_num
+    resource_type = "Sand"
+    default_min = 13
+
+
+    if request.method == 'POST':
+        original_resource = int((request.form.get("current_resource")) or 0)
+        rare_sand = int((request.form.get("rare_sand")) or  0)
+        epic_sand = int((request.form.get("epic_sand")) or 0)
+        resonance = int((request.form.get("resonance")) or 0)
+        current_resource = original_resource + int(rare_sand) * 5 + int(epic_sand) * 25
+        season = request.form.get("season")
+        resource_season = f"{resource_type}_S{season}"
+        this_cap = calculator_caps[f"{resource_season}"]
+        cost = get_upgrade_cost(resource_season)
+
+        for slot in range(slot_num):
+            if resonance == 0:
+                levels[slot] = int(request.form.get(f"{resource_type}_slot{slot}"))
+            else:
+                levels[slot] = resonance
+        dupe = levels.copy()
+
+
+        if all_capped(levels, this_cap) == False:
+            lowest = get_lowest_upgrade(levels, this_cap)
+            while current_resource > int(cost[str(levels[lowest])][resource_type]):
+                current_resource -= int(cost[str(levels[lowest])][resource_type])
+                levels[lowest] += 1
+                lowest = get_lowest_upgrade(levels, this_cap)
+                if levels[lowest] == this_cap:
+                    break
+
+        return render_template("relic-calculator.html",
+                               resource_type=resource_type,
+                               slot_num=slot_num,
+                               current_resource=current_resource,
+                               original_resource=original_resource,
+                               rare_sand=rare_sand,
+                               epic_sand=epic_sand,
+                               dupe=dupe,
+                               levels=levels,
+                               resonance=resonance,
+                               default_min=default_min)
+    else:
+        return render_template("relic-calculator.html",
+                               resource_type=resource_type,
+                               slot_num=slot_num,
+                               current_resource="",
+                               original_resource="",
+                               rare_sand="",
+                               epic_sand="",
+                               dupe="",
+                               levels="",
+                               resonance="",
+                               default_min=default_min)
+
+@app.route("/essence-calculator", methods=["GET", "POST"])
+def essence_calculator():
+    slot_num = 8
+    levels = [0] * slot_num
+    resource_type = "Essence"
+    default_min = 130
+
+
+    if request.method == 'POST':
+        original_resource = int(request.form.get("current_resource"))
+        current_resource = original_resource
+        season = request.form.get("season")
+        resource_season = f"{resource_type}_S{season}"
+        this_cap = calculator_caps[f"{resource_season}"]
+        cost = get_upgrade_cost(resource_season)
+        resonance = int((request.form.get("resonance")) or 0)
+
+        for slot in range(slot_num):
+            if resonance == 0:
+                levels[slot] = int(request.form.get(f"{resource_type}_slot{slot}"))
+            else:
+                levels[slot] = resonance
+        dupe = levels.copy()
+
+        if all_capped(levels, this_cap) == False:
+            lowest = get_lowest_upgrade(levels, this_cap)
+            while current_resource > int(cost[str(levels[lowest])][resource_type]):
+                current_resource -= int(cost[str(levels[lowest])][resource_type])
+                levels[lowest] += 1
+                lowest = get_lowest_upgrade(levels, this_cap)
+                if levels[lowest] == this_cap:
+                    break
+
+        return render_template("essence-calculator.html",
+                               resource_type=resource_type,
+                               slot_num=slot_num,
+                               current_resource=current_resource,
+                               original_resource=original_resource,
+                               default_min=default_min,
+                               resonance=resonance,
+                               dupe=dupe,
+                               levels=levels)
+    else:
+        return render_template("essence-calculator.html",
+                               resource_type=resource_type,
+                               slot_num=slot_num,
+                               current_resource="",
+                               original_resource="",
+                               default_min=default_min,
+                               resonance="",
+                               dupe="",
+                               levels="")
+
+@app.route("/pet-calculator", methods=["GET", "POST"])
+def pet_calculator():
+    slot_num = 4
+    levels = [0] * slot_num
+    resource_type = "Pet"
+    default_min = 130
+
+
+    if request.method == 'POST':
+        original_resource = int((request.form.get("current_resource")) or 0)
+        premium_pet = int((request.form.get("premium_pet")) or  0)
+        deluxue_pet = int((request.form.get("deluxue_pet")) or 0)
+        resonance = int((request.form.get("resonance")) or 0)
+        current_resource = original_resource * 50 + int(premium_pet) * 400 + int(deluxue_pet) * 2000
+        season = request.form.get("season")
+        resource_season = f"{resource_type}_S{season}"
+        this_cap = calculator_caps[f"{resource_season}"]
+        cost = get_upgrade_cost(resource_season)
+
+        for slot in range(slot_num):
+            if resonance == 0:
+                levels[slot] = int(request.form.get(f"{resource_type}_slot{slot}"))
+            else:
+                levels[slot] = resonance
+        dupe = levels.copy()
+
+
+        if all_capped(levels, this_cap) == False:
+            lowest = get_lowest_upgrade(levels, this_cap)
+            while current_resource > int(cost[str(levels[lowest])][resource_type]):
+                current_resource -= int(cost[str(levels[lowest])][resource_type])
+                levels[lowest] += 1
+                lowest = get_lowest_upgrade(levels, this_cap)
+                if levels[lowest] == this_cap:
+                    break
+
+        current_resource /= 50
+
+        return render_template("pet-calculator.html",
+                               resource_type=resource_type,
+                               slot_num=slot_num,
+                               current_resource=current_resource,
+                               original_resource=original_resource,
+                               premium_pet=premium_pet,
+                               deluxue_pet=deluxue_pet,
+                               dupe=dupe,
+                               levels=levels,
+                               resonance=resonance,
+                               default_min=default_min)
+    else:
+        return render_template("pet-calculator.html",
+                               resource_type=resource_type,
+                               slot_num=slot_num,
+                               current_resource="",
+                               original_resource="",
+                               premium_pet="",
+                               deluxue_pet="",
+                               dupe="",
+                               levels="",
+                               resonance="",
+                               default_min=default_min)

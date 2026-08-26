@@ -10,15 +10,15 @@
             <a href="/" class="home-link">Home</a>
         </div>
 
-        <form action="/gear-calculator" method="POST">
+        <form action="/essence-calculator" method="POST">
             <label for="season">Season:</label>
             <select id="season" name="season">
                 <option value="2">Loong Haven</option>
             </select>
 
-            <h1>{{resource_type}} Upgrade Calculator</h1>
+            <h1>Skill Upgrade Calculator</h1>
 
-            <label for="current_resource">Current Ore:</label>
+            <label for="current_resource">Current Battle Essence:</label>
                 <input type="number" name="current_resource" min="0" value="{{original_resource}}" required>
             <div>
 
@@ -27,16 +27,16 @@
                 <br>
             </div>
             {% for slot in range(slot_num) %}
-                <label for="ore_slot{{slot}}">Gear Slot {{slot + 1}}</label>
+                <label for="ore_slot{{slot}}">Skill Slot {{slot + 1}}</label>
                     <input type="number" name="{{resource_type}}_slot{{slot}}" min="130" max="260" value="{{dupe[slot] or default_min}}" required style="width: 75px;">
-                {% if loop.index % 1 == 0 %} 
+                {% if loop.index % 4 == 0 %} 
                     <br>
                 {% endif %}
             {% endfor %}
 
             {% if levels %}
                 <div class="results">
-                    Your gear levels will reach:
+                    Your skill levels will reach:
                     {% for level in levels %}
                         {{level}}
                         {% if not loop.last %}
@@ -44,7 +44,7 @@
                         {% endif %}
                     {% endfor%}
                     <br>
-                    You will have {{current_resource}} raw ore remaining.
+                    You will have {{current_resource}} battle essence remaining.
                 </div>
             {% endif %}
             
