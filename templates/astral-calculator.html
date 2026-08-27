@@ -1,0 +1,70 @@
+<html>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <head>
+        <title>Astral Calculator</title>
+    </head>
+
+    <body class="container">
+
+        <div class="home-wrapper">
+            <a href="/" class="home-link">Home</a>
+        </div>
+
+        <form action="/astral-calculator" method="POST">
+            
+            <h1>Astral Pact Calculator</h1>
+            
+            <label for="season">Season:</label>
+            <select id="season" name="season">
+                <option value="2">Loong Haven</option>
+            </select>
+
+            <div class="astral-entry">
+                <label for="existing_astral">Current Astral Level:</label>
+                    <input type="number" name="existing_astral" value="{{existing_astral}}" required><br>
+                <label for="current_level">Season Player Level:</label>
+                    <input type="number" name="season_level" min="130" max="230" value="{{season_level}}" style="width: 100px;" required>
+            </div>
+
+            <div class="astral-entry">
+                {% for slot in range(slots_num["gear_slots"]) %}
+                    <label for="gear_slots{{slot}}">Gear {{slot + 1}}:  </label> 
+                        <input type="number" name="gear_slots{{slot}}" min="130" max="260"  value="200"  value="{{gear_slots[slot]}}" style="width: 75px;">
+                {% endfor %}
+            </div>
+
+            <div class="astral-entry">
+                {% for slot in range(slots_num["relic_slots"]) %}
+                    <label for="relic_slots{{slot}}">Relic {{slot + 1}}:  </label>
+                        <input type="number" name="relic_slots{{slot}}" min="13" max="27"  value="20"  value="{{relic_slots[slot]}}" style="width: 75px;">
+                    {% if loop.index % 4 == 0 %}
+                        <br>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            <div class="astral-entry">
+                {% for slot in range(slots_num["skill_slots"]) %}
+                    <label for="skill_slots{{slot}}">Skill {{slot + 1}}:  </label>
+                        <input type="number" name="skill_slots{{slot}}" min="130" max="230" value="200" value="{{skill_slots[slot]}}" style="width: 75px;">
+                    {% if loop.index % 4 == 0 %}
+                        <br>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            <div class="astral-entry">
+                {% for slot in range(slots_num["pet_slots"]) %}
+                    <label for="pet_slots{{slot}}">Fantomon {{slot + 1}}:  </label>
+                        <input type="number" name="pet_slots{{slot}}" min="130" max="230"  value="200"  value="{{pet_slots[slot]}}" style="width: 75px;">
+                {% endfor %}
+            </div>
+
+            {% if score %}
+                S2: {{score}}
+            {% endif %}
+
+            <button type="submit">Calculate</button>
+        </form>
+    </body>
+</html>

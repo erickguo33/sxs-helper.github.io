@@ -158,7 +158,7 @@ button:active {
 }
 
 .link-list {
-    width: 500px;
+    width: 475px;
 }
 
 .link-item {
@@ -177,4 +177,9 @@ button:active {
     display: block;
     border-radius: 1.0rem;
     margin: 0.6rem 0rem;
+}
+
+.astral-entry {
+    margin: 0.5rem 0rem;
+    padding: 0.1rem;
 }

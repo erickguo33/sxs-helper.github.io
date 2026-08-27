@@ -60,7 +60,7 @@
             </select>
             <button type="submit">Submit</button>
 
-            {% if skills_data is defined %}
+            {% if skills_data %}
                 {% for class_name in skills_data.keys() %}
                     <h1>{{ class_name }}</h1>
                     <div style="display: flex;">

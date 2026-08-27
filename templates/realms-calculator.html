@@ -1,0 +1,45 @@
+<html>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <head>
+        <title>Material Realms Calculator</title>
+    </head>
+
+    <body class="container">
+
+        <div class="home-wrapper">
+            <a href="/" class="home-link">Home</a>
+        </div>
+
+        <form action="/realms-calculator" method="POST">
+            <h1> Material Realms Calculator </h1>
+
+            <label for="selected_tier">Class Tier: </label>
+            <select id="selected_tier" name="selected_tier">
+                <option value="Champion1" 
+                {% if selected_class == "Champion1" %}
+                    selected
+                {% endif %}
+                >Champion I</option>
+                <option value="Champion2" 
+                {% if selected_class == "Champion3" %}
+                    selected
+                {% endif %}
+                >Champion II</option>
+                <option value="Champion3" 
+                {% if selected_class == "Champion3" %}
+                    selected
+                {% endif %}
+                >Champion III</option>
+            </select><br>
+
+            {% if selected_tier %}
+                {% for resource in resource_types %} 
+
+                {% endfor %}
+            {% endif %}
+
+            <button type="submit">Calculate</button>
+
+        </form>
+    </body>
+</html>

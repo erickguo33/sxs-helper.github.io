@@ -266,7 +266,7 @@ def get_chain(chosen_class):
 def cart_calculator():
     season = request.form.get('season')
     season_max = get_cart_max(season)
-    cart_data = get_cart(season_max)
+    cart_data = get_cart()
 
     if request.method == 'POST':
         future = datetime.fromisoformat(request.form['time_left'])
@@ -311,7 +311,7 @@ def cart_calculator():
 resource_types = ["Rolla", "Wood", "Stone", "Ore", "Essence", "Sand", "Pet"]
 resource_display = ["Rolla", "Wood", "Stone", "Raw Ore", "Battle Essence", "Chrono Sand", "Pet Food"]
 
-def get_cart(max_level):
+def get_cart():
     cart = {}
     with open('cart.csv', newline='') as cart_file:
         reader = csv.DictReader(cart_file)
@@ -427,6 +427,8 @@ def gear_calculator():
                 if levels[lowest] == this_cap:
                     break
 
+        current_resource = int(current_resource)
+
         return render_template("gear-calculator.html",
                                resource_type=resource_type,
                                slot_num=slot_num,
@@ -524,6 +526,8 @@ def relic_calculator():
                 if levels[lowest] == this_cap:
                     break
 
+        current_resource = int(current_resource)
+
         return render_template("relic-calculator.html",
                                resource_type=resource_type,
                                slot_num=slot_num,
@@ -581,6 +585,8 @@ def essence_calculator():
                 if levels[lowest] == this_cap:
                     break
 
+        current_resource = int(current_resource)
+
         return render_template("essence-calculator.html",
                                resource_type=resource_type,
                                slot_num=slot_num,
@@ -612,9 +618,9 @@ def pet_calculator():
     if request.method == 'POST':
         original_resource = int((request.form.get("current_resource")) or 0)
         premium_pet = int((request.form.get("premium_pet")) or  0)
-        deluxue_pet = int((request.form.get("deluxue_pet")) or 0)
+        deluxe_pet = int((request.form.get("deluxe_pet")) or 0)
         resonance = int((request.form.get("resonance")) or 0)
-        current_resource = original_resource * 50 + int(premium_pet) * 400 + int(deluxue_pet) * 2000
+        current_resource = original_resource * 50 + int(premium_pet) * 400 + int(deluxe_pet) * 2000
         season = request.form.get("season")
         resource_season = f"{resource_type}_S{season}"
         this_cap = calculator_caps[f"{resource_season}"]
@@ -638,6 +644,7 @@ def pet_calculator():
                     break
 
         current_resource /= 50
+        current_resource = int(current_resource)
 
         return render_template("pet-calculator.html",
                                resource_type=resource_type,
@@ -645,7 +652,7 @@ def pet_calculator():
                                current_resource=current_resource,
                                original_resource=original_resource,
                                premium_pet=premium_pet,
-                               deluxue_pet=deluxue_pet,
+                               deluxe_pet=deluxe_pet,
                                dupe=dupe,
                                levels=levels,
                                resonance=resonance,
@@ -657,8 +664,93 @@ def pet_calculator():
                                current_resource="",
                                original_resource="",
                                premium_pet="",
-                               deluxue_pet="",
+                               deluxe_pet="",
                                dupe="",
                                levels="",
                                resonance="",
                                default_min=default_min)
+
+@app.route("/realms-calculator", methods=["GET", "POST"])
+def realms_calculator():
+    if request.method == 'POST':
+        selected_tier = request.form.get("selected_tier")
+
+        return render_template("realms-calculator.html",
+                               selected_tier=selected_tier)
+    else:
+        return render_template("realms-calculator.html",
+                               selected_tier="")
+
+@app.route("/astral-calculator", methods=["GET", "POST"])
+def astral_calculator():
+    slot_types = [
+        "gear_slots",
+        "relic_slots",
+        "skill_slots",
+        "pet_slots"
+    ]
+
+    slots_num = {
+        slot_types[0]: 5,
+        slot_types[1]: 20,
+        slot_types[2]: 8,
+        slot_types[3]: 4
+    }
+
+    points = {
+        slot_types[0]: 18,
+        slot_types[1]: 33,
+        slot_types[2]: 7,
+        slot_types[3]: 8
+    }
+
+    score = 0
+    
+    if request.method == 'POST':
+        slots = {}
+        existing_astral = int(request.form.get("existing_astral"))
+        season_level = int(request.form.get("season_level"))
+
+        for slot_type in slot_types:
+            slots[slot_type] = [0] * slots_num[slot_type]
+            for slot in range(slots_num[slot_type]):
+                slots[slot_type][slot] = request.form.get(f"{slot_type}{slot}")
+            score = astral_power(slots[slot_type], points[slot_type], score)
+
+        score +=  (season_level - 130) * 100
+        score = score // 27
+        score += existing_astral + 45
+
+        return render_template("astral-calculator.html",
+                                gear_slots=slots["gear_slots"],
+                                relic_slots=slots["relic_slots"],
+                                skill_slots=slots["skill_slots"],
+                                pet_slots=slots["pet_slots"],
+                                score=score,
+                                season_level=season_level,
+                                existing_astral=existing_astral,
+                                slots_num=slots_num)
+    else:
+        return render_template("astral-calculator.html",
+                                gear_slots="",
+                                relic_slots="",
+                                skill_slots="",
+                                pet_slots="",
+                                score="",
+                                season_level="",
+                                existing_astral="",
+                                slots_num=slots_num)
+
+def astral_power(slots, points, score):
+    current = 0
+
+    deduction = 130
+    if points == 33:
+        deduction = 13
+
+    for slot in range(len(slots)):
+        current += (int(slots[slot]) - deduction) * points
+
+    score += current
+    print(score)
+    return score
