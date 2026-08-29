@@ -208,10 +208,12 @@ loong_exp = {
 @app.route("/skills", methods=["GET", "POST"])
 def skills():
     if request.method == 'POST':
-        selected_class = request.form.get('selected_class')
-        skills_data = get_skills(selected_class)
+        player_class = request.form.get("player_class")
+        season = request.form.get("season")
+        skills_data = get_skills(player_class, season)
         return render_template("skills.html", 
-            selected_class=selected_class,
+            player_class=player_class,
+            season=season,
             skills_data=skills_data, 
             base_qualities=base_qualities,
             quality_order=quality_order,
@@ -219,17 +221,22 @@ def skills():
             multi_skills=multi_skills) 
     else:
         return render_template("skills.html",
+            player_class="",
+            season="",
             skills_data={},
             base_qualities=base_qualities,
             quality_order=quality_order,
             summon_skills=summon_skills,
             multi_skills=multi_skills)
 
-def get_skills(class_filter):
+def get_skills(player_class, season):
+    class_sheet = get_upgrade_cost("classes")
+    class_filter = class_sheet[season][player_class]
+    print(class_filter)
     skills = []
     classes = get_chain(class_filter)
 
-    with open('s3_skills.csv', newline='') as skills_file:
+    with open('csv/s3_skills.csv', newline='') as skills_file:
         reader = csv.DictReader(skills_file)
         for row in reader:
             if row['Class'] in classes:
@@ -313,7 +320,7 @@ resource_display = ["Rolla", "Wood", "Stone", "Raw Ore", "Battle Essence", "Chro
 
 def get_cart():
     cart = {}
-    with open('cart.csv', newline='') as cart_file:
+    with open('csv/cart.csv', newline='') as cart_file:
         reader = csv.DictReader(cart_file)
         for row in reader:
             level = row['Lvl']
@@ -458,7 +465,7 @@ calculator_caps = {
 
 def get_upgrade_cost(resource_season):
     cost = {}
-    with open(f"{resource_season}.csv", newline='') as cost_file:
+    with open(f"csv/{resource_season}.csv", newline='') as cost_file:
         reader = csv.DictReader(cost_file)
         for row in reader:
             level = row['Lvl']
@@ -670,16 +677,64 @@ def pet_calculator():
                                resonance="",
                                default_min=default_min)
 
+rank_level = {
+    "Champion": 100,
+    "Master": 130
+}
+
 @app.route("/realms-calculator", methods=["GET", "POST"])
 def realms_calculator():
+    realms = get_upgrade_cost("realms")
+
     if request.method == 'POST':
-        selected_tier = request.form.get("selected_tier")
+        rank = request.form.get("rank")
+        tier = int(request.form.get("tier"))
+        calculations = {}
+        level = rank_level[rank] + (tier - 1) * 10
+        daily_purchases = int(request.form.get("daily_purchases") or 0)
+        realm_counts = {}
+        future_realms = 0
+
+        future = request.form.get("time_left") or 0
+        if (future != 0):
+            future = datetime.fromisoformat(future)
+            present = datetime.now()
+            time_left = (future - present).total_seconds() // 3600
+            next_reset = datetime.now().replace(hour=8, minute=0, second=0, microsecond=0)    
+            remaining_time= (next_reset - datetime.now()).total_seconds() / 3600
+            remaining_days =  ((time_left - remaining_time) // 24)
+            future_realms = remaining_days * daily_purchases
+
+        for realm in realm_types:
+            realm_counts[f"{realm}_count"] = int(request.form.get(f"{realm}_count"))
+            count = realm_counts[f"{realm}_count"] + future_realms
+            calculations[(realm)] = (int(realms[str(level)][realm])) * count
+
+        if daily_purchases == 0:
+            daily_purchases = ""
+
 
         return render_template("realms-calculator.html",
-                               selected_tier=selected_tier)
+                               realms=realms,
+                               rank=rank,
+                               tier=tier,
+                               calculations=calculations,
+                               daily_purchases=daily_purchases,
+                               time_left=future,
+                               realm_counts=realm_counts,
+                               realm_types=realm_types)
     else:
         return render_template("realms-calculator.html",
-                               selected_tier="")
+                               realms="",
+                               rank="",
+                               tier="",
+                               calculations="",
+                               daily_purchases="",
+                               time_left="",
+                               realm_counts="",
+                               realm_types=realm_types)
+
+realm_types = ["Rolla", "Ore", "Essence", "Sand"]
 
 @app.route("/astral-calculator", methods=["GET", "POST"])
 def astral_calculator():
@@ -708,13 +763,20 @@ def astral_calculator():
     
     if request.method == 'POST':
         slots = {}
+        resonance = {}
         existing_astral = int(request.form.get("existing_astral"))
         season_level = int(request.form.get("season_level"))
 
         for slot_type in slot_types:
             slots[slot_type] = [0] * slots_num[slot_type]
+            resonance = request.form.get(f"{slot_type}_resonance") or 0
+            resonance = int(resonance)
             for slot in range(slots_num[slot_type]):
-                slots[slot_type][slot] = request.form.get(f"{slot_type}{slot}")
+                data = request.form.get(f"{slot_type}{slot}")
+                if resonance != 0:
+                    slots[slot_type][slot] = resonance
+                elif data:
+                    slots[slot_type][slot] = data
             score = astral_power(slots[slot_type], points[slot_type], score)
 
         score +=  (season_level - 130) * 100
@@ -749,8 +811,9 @@ def astral_power(slots, points, score):
         deduction = 13
 
     for slot in range(len(slots)):
-        current += (int(slots[slot]) - deduction) * points
+        if int(slots[slot]):
+            current += (int(slots[slot]) - deduction) * points
 
     score += current
-    print(score)
     return score
+

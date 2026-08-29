@@ -2,7 +2,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <head>
         <script src="https://logly.uk/p.js?s=sxs-helper-github-io-onrender-co" data-site="sxs-helper-github-io-onrender-co" async></script>
-        <title>Skills Library</title>
+        <!----><title>Skills Library</title>
     </head>
 
     <body class="container">
@@ -11,54 +11,44 @@
         </div>
 
         <form action="/skills" method="POST">
-            <label for="selected_class">Class Tier: </label>
-            <select id="selected_class" name="selected_class">
-                
-                <option value="Destroyer" 
-                {% if selected_class == "Destroyer" %} 
-                    selected
-                {% endif %}
-                >Destroyer</option>
-                <option value="Dominator" 
-                {% if selected_class == "Dominator" %}
-                    selected
-                {% endif %}
-                >Dominator</option>
-                <option value="Conqueror" 
-                {% if selected_class == "Conqueror" %}
-                    selected
-                {% endif %}
-                >Conqueror</option>
-                <option value="Guardian" 
-                {% if selected_class == "Guardian" %}
-                    selected
-                {% endif %}
-                >Guardian</option>
 
-                <!--
-                <option value="Magister" 
-                {% if selected_class == "Magister" %} 
+            <label for="player-class"> Class:</label>
+            <select id="player_class" name="player_class">
+                <option value="Mage"
+                {% if player_class == "Mage" %}
                     selected
                 {% endif %}
-                >Magister</option>
-                <option value="Prophet" 
-                {% if selected_class == "Prophet" %}
+                >Mage</option>
+                <option value="Sage"
+                {% if player_class == "Sage" %}
                     selected
                 {% endif %}
-                >Prophet</option>
-                <option value="Ravager" 
-                {% if selected_class == "Ravager" %}
+                >Sage</option>
+                <option value="Duelist"
+                {% if player_class == "Duelist" %}
                     selected
                 {% endif %}
-                >Ravager</option>
-                <option value="Templar" 
-                {% if selected_class == "Templar" %}
+                >Duelist</option>
+                <option value="Knight"
+                {% if player_class == "Knight" %}
                     selected
                 {% endif %}
-                >Templar</option>
-                -->
-
+                >Knight</option></select>
+            <label for="season">Season: </label>
+            <select id="season" name="season">
+                <option value="2"
+                {% if season == "2" %}
+                    selected
+                {% endif %}
+                >Loong Haven</option>
+                <option value="3"
+                {% if season == "3" %}
+                    selected
+                {% endif %}
+                >Aethyris</option>
             </select>
+
+
             <button type="submit">Submit</button>
 
             {% if skills_data %}

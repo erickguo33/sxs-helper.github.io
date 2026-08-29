@@ -2,7 +2,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <head>
         <script src="https://logly.uk/p.js?s=sxs-helper-github-io-onrender-co" data-site="sxs-helper-github-io-onrender-co" async></script>
-        <title>Material Realms Calculator</title>
+        <!----><title>Material Realms Calculator</title>
     </head>
 
     <body class="container">
@@ -14,30 +14,50 @@
         <form action="/realms-calculator" method="POST">
             <h1> Material Realms Calculator </h1>
 
-            <label for="selected_tier">Class Tier: </label>
-            <select id="selected_tier" name="selected_tier">
-                <option value="Champion1" 
-                {% if selected_class == "Champion1" %}
+            <label for="rank">Class Rank: </label>
+            <select id="rank" name="rank">
+                <option value="Champion" 
+                {% if rank == "Champion" %}
                     selected
                 {% endif %}
-                >Champion I</option>
-                <option value="Champion2" 
-                {% if selected_class == "Champion3" %}
+                >Champion</option>
+            </select>
+            <label for="rank">Tier: </label>
+            <select id="tier" name="tier">
+                <option value=1
+                {% if tier == 1 %}
                     selected
                 {% endif %}
-                >Champion II</option>
-                <option value="Champion3" 
-                {% if selected_class == "Champion3" %}
+                >I</option>
+                <option value=2 
+                {% if tier == 2 %}
                     selected
                 {% endif %}
-                >Champion III</option>
-            </select><br>
+                >II</option>
+                <option value=3
+                {% if tier == 3 %}
+                    selected
+                {% endif %}
+                >III</option>
+            </select><br><br>
 
-            {% if selected_tier %}
-                {% for resource in resource_types %} 
-
+            <div class="realm_entry">
+                {% for realm in realm_types %}
+                    <label for="{{realm}}_count">{{realm}} Count: </label>
+                        <input type="number" name="{{realm}}_count" value="{{realm_counts[realm + '_count']}}" required>
+                    {% if calculations %}
+                        Approximated at <b>{{calculations[realm]}}</b> {{realm}}.
+                    {% endif %}
+                    <br>
                 {% endfor %}
-            {% endif %}
+            </div><br>
+
+            <p>Optional</p>
+                <label for="time_left">Time Left:</label>
+                    <input type="datetime-local" id="time_left" name="time_left" value="{{time_left}}"><br>
+                <label for="daily_purchases">Daily Realm Purchases</label>
+                    <input type="number" id="daily_purchases" name="daily_purchases" value="{{daily_purchases}}">
+            <br>
 
             <button type="submit">Calculate</button>
 
