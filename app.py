@@ -216,6 +216,7 @@ def cart_calculator():
                                 cart_level=cart_level,
                                 bonus=bonus,
                                 total_output=total_output,
+                                season=season,
                                 time_left=future)
     else: 
         cart_level = {}
@@ -225,6 +226,7 @@ def cart_calculator():
                                 resource_types=resource_types,
                                 cart_level=cart_level,
                                 bonus=bonus,
+                                season="",
                                 total_output=total_output)
 
 resource_types = ["Rolla", "Wood", "Stone", "Ore", "Essence", "Sand", "Pet"]
@@ -354,6 +356,7 @@ def gear_calculator():
                                original_resource=original_resource,
                                resonance=resonance,
                                dupe=dupe,
+                               season=season,
                                levels=levels)
     else:
         return render_template("gear-calculator.html",
@@ -363,6 +366,7 @@ def gear_calculator():
                                original_resource="",
                                resonance="",
                                dupe="",
+                               season="",
                                levels="")
 
 calculator_caps = {
@@ -457,6 +461,7 @@ def relic_calculator():
                                epic_sand=epic_sand,
                                dupe=dupe,
                                levels=levels,
+                               season=season,
                                resonance=resonance)
     else:
         return render_template("relic-calculator.html",
@@ -468,6 +473,7 @@ def relic_calculator():
                                epic_sand="",
                                dupe="",
                                levels="",
+                               season="",
                                resonance="")
 
 @app.route("/essence-calculator", methods=["GET", "POST"])
@@ -511,6 +517,7 @@ def essence_calculator():
                                original_resource=original_resource,
                                resonance=resonance,
                                dupe=dupe,
+                               season=season,
                                levels=levels)
     else:
         return render_template("essence-calculator.html",
@@ -520,6 +527,7 @@ def essence_calculator():
                                original_resource="",
                                resonance="",
                                dupe="",
+                               season="",
                                levels="")
 
 @app.route("/pet-calculator", methods=["GET", "POST"])
@@ -569,6 +577,7 @@ def pet_calculator():
                                deluxe_pet=deluxe_pet,
                                dupe=dupe,
                                levels=levels,
+                               season=season,
                                resonance=resonance)
     else:
         return render_template("pet-calculator.html",
@@ -580,6 +589,7 @@ def pet_calculator():
                                deluxe_pet="",
                                dupe="",
                                levels="",
+                               season="",
                                resonance="")
 
 rank_level = {
