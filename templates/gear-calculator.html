@@ -15,7 +15,16 @@
         <form action="/gear-calculator" method="POST">
             <label for="season">Season:</label>
             <select id="season" name="season">
-                <option value="2">Loong Haven</option>
+                <option value="2"
+                {% if season == "2" %}
+                    selected
+                {% endif %}
+                >Loong Haven</option>
+                <option value="3"
+                {% if season == "3" %}
+                    selected
+                {% endif %}
+                >Aethyris</option>
             </select>
 
             <h1>{{resource_type}} Upgrade Calculator</h1>
@@ -25,12 +34,12 @@
             <div>
 
             <label for="resonance">Resonance</label>
-                <input type="number" name="resonance" min="130" value="{{resonance}}" style="width: 75px;">
+                <input type="number" name="resonance" value="{{resonance}}" style="width: 75px;">
                 <br>
             </div>
             {% for slot in range(slot_num) %}
                 <label for="ore_slot{{slot}}">Gear Slot {{slot + 1}}</label>
-                    <input type="number" name="{{resource_type}}_slot{{slot}}" min="130" max="260" value="{{dupe[slot] or default_min}}" required style="width: 75px;">
+                    <input type="number" name="{{resource_type}}_slot{{slot}}" value="{{dupe[slot] or default_min}}" style="width: 75px;">
                 <br>
             {% endfor %}
 

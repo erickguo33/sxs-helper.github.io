@@ -45,6 +45,8 @@ if (datetime.now() > today_reset):
 @app.route("/experience-calculator", methods=["GET", "POST"])
 def experience_calculator():
     if request.method == 'POST':
+        season = int(request.form.get('season'))
+        exp = get_exp(season)
         current_level = int(request.form.get('current_level'))
         current_experience = int(request.form['current_experience'])
         exp_per_hour = int(request.form.get('exp_per_hour'))
@@ -58,12 +60,12 @@ def experience_calculator():
             next_reset = today_reset.replace(day=today_reset.day + 1)
         boost_diff = (next_reset - datetime.now()).total_seconds() / 3600
         if request.form.get('target_level'):
-            target_level = request.form.get('target_level')
+            target_level = int(request.form.get('target_level'))
         else:
             target_level = current_level + 1
         total_xp_needed = 0 - current_experience
         for level in range(current_level, target_level):
-            total_xp_needed += loong_exp[level] * 10000
+            total_xp_needed += int(exp[str(level)]['Exp']) * 10000
         hours_left = total_xp_needed / exp_per_hour
         target_boost_count = boost_count
         if hours_left > boost_diff:
@@ -80,11 +82,11 @@ def experience_calculator():
         time_left = (future - present).total_seconds() // 3600
         timed_boost_count = boost_count + ((time_left - boost_diff) // 24)
         total_experience_gained = time_left * exp_per_hour + timed_boost_count * 2 * exp_per_hour
-        current_exp_needed = loong_exp[current_level] * 10000 - current_experience
+        current_exp_needed = int(exp[str(current_level)]['Exp']) * 10000 - current_experience
         while total_experience_gained >= current_exp_needed:
             calculated_level += 1
             total_experience_gained -= current_exp_needed
-            current_exp_needed = loong_exp[calculated_level] * 10000
+            current_exp_needed = int(exp[str(calculated_level)]['Exp']) * 10000
         calculated_level += (total_experience_gained / current_exp_needed)
         calculated_level = round(calculated_level, 2)
 
@@ -98,112 +100,22 @@ def experience_calculator():
             current_experience=current_experience,
             exp_per_hour=exp_per_hour,  
             target_level=target_level,
-            today_boosted=request.form.get('today_boosted'))
+            today_boosted=request.form.get('today_boosted'),
+            season=str(season))
     else:
-        return render_template("experience-calculator.html", default_time=default_time)
+        return render_template("experience-calculator.html", 
+            default_time=default_time,
+            season="")
 
-loong_exp = {
-    130: 634,
-    131: 679,
-    132: 734,
-    133: 789,
-    134: 843,
-    135: 894,
-    136: 953,
-    137: 1006,
-    138: 1059,
-    139: 1120,
-    140: 1128,
-    141: 1133,
-    142: 1138,
-    143: 1144,
-    144: 1149,
-    145: 1154,
-    146: 1159,
-    147: 1165,
-    148: 1167,
-    149: 1173,
-    150: 1178,
-    151: 1181,
-    152: 1183,
-    153: 1186,
-    154: 1191,
-    155: 1197,
-    156: 1204,
-    157: 1215,
-    158: 1220,
-    159: 1226,
-    160: 1231,
-    161: 1239,
-    162: 1244,
-    163: 1250,
-    164: 1250,
-    165: 1252,
-    166: 1257,
-    167: 1263,
-    168: 1265,
-    169: 1271,
-    170: 1276,
-    171: 1281,
-    172: 1287,
-    173: 1295,
-    174: 1302,
-    175: 1308,
-    176: 1313,
-    177: 1318,
-    178: 1321,
-    179: 1326,
-    180: 1332,
-    181: 1337,
-    182: 1339,
-    183: 1342,
-    184: 1345,
-    185: 1347,
-    186: 1347,
-    187: 1347,
-    188: 1347,
-    189: 1347,
-    190: 1347,
-    191: 1347,
-    192: 1347,
-    193: 1347,
-    194: 1347,
-    195: 1347,
-    196: 1347,
-    197: 1347,
-    198: 1347,
-    199: 1347,
-    200: 1347,
-    201: 1347,
-    202: 1347,
-    203: 1347,
-    204: 1347,
-    205: 1347,
-    206: 1347,
-    207: 1347,
-    208: 1347,
-    209: 1347,
-    210: 1347,
-    211: 1347,
-    212: 1347,
-    213: 1347,
-    214: 1347,
-    215: 1347,
-    216: 1347,
-    217: 1347,
-    218: 1347,
-    219: 1347,
-    220: 1347,
-    221: 1347,
-    222: 1347,
-    223: 1347,
-    224: 1347,
-    225: 1347,
-    226: 1347,
-    227: 1347,
-    228: 1347,
-    229: 1347,
-}
+def get_exp(season):
+    file_name = "Exp_S" + str(season) + ".csv"
+    exp = {}
+    with open('csv/' + file_name, newline='') as exp_file:
+        reader = csv.DictReader(exp_file)
+        for row in reader:
+            level = row['Lvl']
+            exp[level] = row
+    return exp
 
 @app.route("/skills", methods=["GET", "POST"])
 def skills():
@@ -331,7 +243,7 @@ def get_cart_max(season):
     if season == "2":
         return 108
     else:
-        return 152
+        return 180
 
 def hourly_update(cart_level, bonus, priority, total_output, cart_data, season_max):
     for resource in resource_types:
@@ -406,7 +318,6 @@ def gear_calculator():
     slot_num = 5
     levels = [0] * slot_num
     resource_type = "Ore"
-    default_min = 130
 
 
     if request.method == 'POST':
@@ -441,7 +352,6 @@ def gear_calculator():
                                slot_num=slot_num,
                                current_resource=current_resource,
                                original_resource=original_resource,
-                               default_min=default_min,
                                resonance=resonance,
                                dupe=dupe,
                                levels=levels)
@@ -451,7 +361,6 @@ def gear_calculator():
                                slot_num=slot_num,
                                current_resource="",
                                original_resource="",
-                               default_min=default_min,
                                resonance="",
                                dupe="",
                                levels="")
@@ -461,6 +370,10 @@ calculator_caps = {
     "Sand_S2": 27,
     "Essence_S2": 230,
     "Pet_S2": 230,
+    "Ore_S3": 420,
+    "Sand_S3": 34,
+    "Essence_S3": 340,
+    "Pet_S3": 300
 }
 
 def get_upgrade_cost(resource_season):
@@ -502,7 +415,7 @@ def relic_calculator():
     slot_num = 20
     levels = [0] * slot_num
     resource_type = "Sand"
-    default_min = 13
+
 
 
     if request.method == 'POST':
@@ -544,8 +457,7 @@ def relic_calculator():
                                epic_sand=epic_sand,
                                dupe=dupe,
                                levels=levels,
-                               resonance=resonance,
-                               default_min=default_min)
+                               resonance=resonance)
     else:
         return render_template("relic-calculator.html",
                                resource_type=resource_type,
@@ -556,15 +468,13 @@ def relic_calculator():
                                epic_sand="",
                                dupe="",
                                levels="",
-                               resonance="",
-                               default_min=default_min)
+                               resonance="")
 
 @app.route("/essence-calculator", methods=["GET", "POST"])
 def essence_calculator():
     slot_num = 8
     levels = [0] * slot_num
     resource_type = "Essence"
-    default_min = 130
 
 
     if request.method == 'POST':
@@ -599,7 +509,6 @@ def essence_calculator():
                                slot_num=slot_num,
                                current_resource=current_resource,
                                original_resource=original_resource,
-                               default_min=default_min,
                                resonance=resonance,
                                dupe=dupe,
                                levels=levels)
@@ -609,7 +518,6 @@ def essence_calculator():
                                slot_num=slot_num,
                                current_resource="",
                                original_resource="",
-                               default_min=default_min,
                                resonance="",
                                dupe="",
                                levels="")
@@ -619,7 +527,6 @@ def pet_calculator():
     slot_num = 4
     levels = [0] * slot_num
     resource_type = "Pet"
-    default_min = 130
 
 
     if request.method == 'POST':
@@ -662,8 +569,7 @@ def pet_calculator():
                                deluxe_pet=deluxe_pet,
                                dupe=dupe,
                                levels=levels,
-                               resonance=resonance,
-                               default_min=default_min)
+                               resonance=resonance)
     else:
         return render_template("pet-calculator.html",
                                resource_type=resource_type,
@@ -674,8 +580,7 @@ def pet_calculator():
                                deluxe_pet="",
                                dupe="",
                                levels="",
-                               resonance="",
-                               default_min=default_min)
+                               resonance="")
 
 rank_level = {
     "Champion": 100,
@@ -753,10 +658,10 @@ def astral_calculator():
     }
 
     points = {
-        slot_types[0]: 18,
-        slot_types[1]: 33,
-        slot_types[2]: 7,
-        slot_types[3]: 8
+        slot_types[0]: 14,
+        slot_types[1]: 26,
+        slot_types[2]: 5,
+        slot_types[3]: 6
     }
 
     score = 0
@@ -779,9 +684,9 @@ def astral_calculator():
                     slots[slot_type][slot] = data
             score = astral_power(slots[slot_type], points[slot_type], score)
 
-        score +=  (season_level - 130) * 100
-        score = score // 27
-        score += existing_astral + 45
+        score +=  (season_level - 160) * 100
+        score = score // 13
+        score += existing_astral + 65
 
         return render_template("astral-calculator.html",
                                 gear_slots=slots["gear_slots"],
@@ -806,9 +711,9 @@ def astral_calculator():
 def astral_power(slots, points, score):
     current = 0
 
-    deduction = 130
-    if points == 33:
-        deduction = 13
+    deduction = 160
+    if points == 26:
+        deduction = 16
 
     for slot in range(len(slots)):
         if int(slots[slot]):
